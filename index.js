@@ -64,14 +64,22 @@ if (!message.content.startsWith(prefix)) return;
 if (message.author.bot) return;
 const args = message.content.slice(prefix.length).trim().split(/ +/g);
 const command = args.shift().toLowerCase();
-
 if(command === 'ping'){
   let ping = Math.floor(message.client.ws.ping);
-   message.channel.send(':ping_pong: `'+ping+' ms.` desde Repl.'); 
+   message.channel.send(':ping_pong: `'+ping+' ms.` desde Consola.'); 
+}
+if(command === 'evento'){
+  message.delete();
+  let permiso = message.member.hasPermission('MANAGE_MESSAGES');
+  if(!permiso) return message.reply('No, no, no...').then(msg=>msg.delete({timeout: 1000}))
+  const imagen = new Discord.MessageAttachment('https://cdn.discordapp.com/attachments/750520873039036487/904855620996435988/Evento_Minecraft_SPM.png')
+ message.channel.send(imagen);
 }
 ///////////////////////////////////Embeds personales////////////////////////////////////////////////////////////////////////////////
 if(command==='embed'){
 
+  let permiso = message.member.hasPermission('MANAGE_MESSAGES');
+    if(!permiso) return message.channel.send('No tienes permisos serñor <@'+message.author.id+'>.').then(msg=>{msg.delete({timeout: 1000})})
   if(args[0] === 'titulo'){
     let titulo = args.slice(1).join(' ');
         if(!titulo) return message.channel.send('Coloque titulo').then(msg=>msg.delete({timeout: 1000}))
@@ -261,13 +269,13 @@ if(command==='say'){
   let PER = message.member.hasPermission("MANAGE_MESSAGES");
   let texto = args.join(" ");
   if(!PER) return message.channel.send(`Como pienzas hacer que diga ese mensaje si no tienes permisos ${message.author}`).then(msg=>msg.delete({timeout: 4000}))
-if(!texto) return message.channel.send(`Escriba el contenido a enviar.`).then(msg=>msg.delete({timeout: 2000}));
+  message.delete();
+if(!texto) return message.channel.send(`Escriba el contenido a enviar.`).then(msg=>msg.delete({timeout: 1000}));
 message.channel.send(texto);
-message.delete();
 }
 //Nicks
 if(command === 'nick'){
-    let nick = args[0]
+    let nick = args.join(' ')
     if(!nick) return message.channel.send('Coloca ti nick `'+prefix+'nick <TuNombreEnMinecraft>`')
 
   let SQLSelect = `SELECT * FROM nick WHERE idusuario = ${message.author.id}`;
@@ -312,7 +320,8 @@ if(command==='cambiarnick'){
   let miembro = message.mentions.users.first();
     if(!miembro) return message.channel.send('Menciona a alguen').then(msg=>msg.delete({timeout: 500}))
 
-    let nick = args[1];
+    let nick = args.slice(1).join(' ')
+    console.log(nick);
     
     let SQLSelect = `SELECT * FROM nick WHERE idusuario = ${miembro.id}`;
 
@@ -394,7 +403,7 @@ message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
         .setColor(0x2ECC71)
         .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 1`')
         .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *10 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *20 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
         .setFooter(client.user.username, client.user.displayAvatarURL())
         .setTimestamp()
         
@@ -406,7 +415,7 @@ message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
         .setColor(0xF1C40F)
         .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 2`')
         .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS A ESTE NIVEL O SUPERIOR.\n2. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *45 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2.SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGúN TU NIVEL. \n3. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *40 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
         .setFooter(client.user.username, client.user.displayAvatarURL())
         .setTimestamp()
         
@@ -418,14 +427,26 @@ message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
         .setColor(0xD35400 )
         .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 3`')
         .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS A ESTE NIVEL O SUPERIOR.\n2. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *100 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *70 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
         .setFooter(client.user.username, client.user.displayAvatarURL())
         .setTimestamp()
         
         message.channel.send(embed);
       }
       if(nivel == 4){
-        message.channel.send('MANTENIMIENTO')
+        message.channel.send('YA CASI ESTA LISTO')
+        if(0===1) return;
+
+        const embed = new Discord.MessageEmbed()
+        .setTitle('NIVEL DE PRANK `4`')
+        .setColor(0xFF0000)
+        .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 4`')
+        .setAuthor(user.username, user.displayAvatarURL())
+        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 4 TE PERMITEN MOVER, COLOCAR, QUITAR BLOQUES SIN NINGUN LIMITE*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+        .setFooter(client.user.username, client.user.displayAvatarURL())
+        .setTimestamp()
+        
+        message.channel.send(embed);
       }
 })
   }
@@ -438,6 +459,7 @@ message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
 
   }
   if(argumento0=== 'estado') consultas(message.author)
+
 
 function ingresoDatos () {
   let consulta = `SELECT * FROM nick WHERE idusuario = ${message.author.id}`;
@@ -453,17 +475,29 @@ if(nivel < 0)return message.channel.send(a)
 ///4 desactivadp
 if(nivel == 4) return message.channel.send(`**${message.member.displayName}** EL NIVEL 4 ESTA EN MANTENIMIENTO DISCULPA LAS MOLESTIAS`)
 
+function numeros(){
+  let level
+  if(nivel == 0)level = ' '
+  if(nivel == 1)level = '①'
+  if(nivel == 2)level = '②'
+  if(nivel == 3)level = '③'
+  if(nivel == 4)level = '⓸'
+  return level
+}
+
+
 function niveles() {
-  if(message.author.id == message.guild.ownerID)return
-let nombre = datos.name;
-    let level
-    if(nivel == 0)level = ' '
-    if(nivel == 1)level = '①'
-    if(nivel == 2)level = '②'
-    if(nivel == 3)level = '③'
-    if(nivel == 4)level = '⓸'
-    
-   message.member.setNickname(`${nombre} ${level}`).catch(console.error)
+  let nombre = datos.name;
+  let level
+  if(nivel == 0)level = ' '
+  if(nivel == 1)level = '①'
+  if(nivel == 2)level = '②'
+  if(nivel == 3)level = '③'
+  if(nivel == 4)level = '⓸'
+  
+  if(message.author.id == message.guild.ownerID) return 
+  
+  message.member.setNickname(`${nombre} ${level}`).catch(console.error)
 }
 let roles = require('./roles.json');
 
@@ -478,6 +512,7 @@ function addRol(){
       if(r4)message.member.roles.remove(r4.id)
 
       let add
+  if(nivel == 0) return;
   if(nivel == 1) add = roles.prank1;
   if(nivel == 2) add = roles.prank2;
   if(nivel == 3) add = roles.prank3;
@@ -496,7 +531,7 @@ function addRol(){
       
       db.run(SQLInsert, function(err) {
           if (err) return console.error(err.message)
-          message.channel.send(`Se a añadido tu nivel de Prank a nivel ${nivel}`)
+          message.channel.send(`Se a añadido tu nivel de Prank a nivel ${numeros()}`)
           niveles()
           addRol()
       })
@@ -508,7 +543,7 @@ function addRol(){
 
         db.run(SQLUpdate, function(err) {
             if (err) return console.error(err.message)
-            message.channel.send(`Se actualizo tu nivel de Pranks a ${nivel}`)
+            message.channel.send(`Se actualizo tu nivel de Pranks a ${numeros()}`)
             niveles()
             addRol()
         })
@@ -519,14 +554,16 @@ function addRol(){
 
 })
 }
-if(argumento0=== 'ingresar'){
+
+
+if(argumento0 === 'ingresar'){
   ingresoDatos()
 }
 if(argumento0 === 'i'){
   ingresoDatos()
 }
 
-if(argumento0==='niveles'){
+if(argumento0 ==='niveles'){
   let user = message.author
   let member = message.member;
 
@@ -546,7 +583,7 @@ if(argumento0==='niveles'){
     .setColor(0x2ECC71)
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 1`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *10 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *20 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
     .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
@@ -558,8 +595,8 @@ if(argumento0==='niveles'){
     .setColor(0xF1C40F)
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 2`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS A ESTE NIVEL O SUPERIOR.\n2. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *45 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
-    .setFooter(client.user.username, client.user.displayAvatarURL())
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2.SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGúN TU NIVEL. \n3. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *40 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+        .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
     member.send(embed2);
@@ -569,7 +606,7 @@ if(argumento0==='niveles'){
     .setColor(0xD35400 )
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 3`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS A ESTE NIVEL O SUPERIOR.\n2. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *100 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *70 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
     .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
@@ -582,7 +619,7 @@ message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
 
 if(command === 'mute'){
   let permisos = message.member.hasPermission("ADMINISTRATOR");
-    if(!permisos) return message.channel.send(`Señor@ <@${message.author.id}> no puede Muter`).then(msg=>msg.delete({timeout: 3000}))
+    if(!permisos) return message.channel.send(`Señor@ <@${message.author.id}> no puede Mutear`).then(msg=>msg.delete({timeout: 3000}))
     let miembro = message.mentions.members.first();
     if(!miembro) return message.channel.send('Porfavor mencione a alguen').then(msg=> msg.delete({timeout: 3000}))
   let tiempo = parseInt(args[1])
@@ -592,8 +629,8 @@ let razon = args.slice(2).join(' ') || 'No se especifica';
 message.delete()
     miembro.roles.add('750542085257429002')
     miembro.roles.remove('749782923451826256')
-    client.channels.resolve('750571555096100914').send(`${miembro} esta muteado por ${tiempo} milisegundos`)
-  miembro.send(`Has sido muteado del servidor **${message.guild.name}** por un tiempo de **${tiempo}** milisegundos por la razon: ${razon}`)
+    client.channels.resolve('750571555096100914').send(`${miembro} esta muteado por ${tiempo/1000} segundos`)
+  miembro.send(`Has sido muteado del servidor **${message.guild.name}** por un tiempo de **${tiempo/1000}** segundos por la razon: ${razon}`)
   setTimeout(() =>{
     miembro.roles.remove('750542085257429002')
     miembro.roles.add('749782923451826256')
@@ -615,6 +652,7 @@ if(command==='hablar'){
         persona.send(contenido)
         client.channels.resolve('750571555096100914').send(`**${message.author.username}** Envio mensaje a **${persona.user.username}**:\n${contenido}`)
 }
+
 if(command === 'clear'){
             let permisos = message.member.hasPermission('MANAGE_MESSAGES');
             if(!permisos) return message.channel.send('No puedes borrar eso').then(msg=>msg.delete({timeout: 3000}))
