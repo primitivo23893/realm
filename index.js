@@ -21,8 +21,8 @@ client.on("ready", ()=>{
     client.user.setPresence({
         status: "online",
         activity:{
-            name: 'Survival Mexico',
-            type: "PLAYING"
+            name: 'La consola de Mantenimiento',
+            type: "WATCHING"
         }
     })
     let SQLCreate = "CREATE TABLE IF NOT EXISTS broma (idusuario TEXT, nivel INTEGER)";
@@ -37,6 +37,11 @@ db.run(tabla, function(err){
   if(err) return console.error(err.message)
 })
 
+//pagos
+let pago = "CREATE TABLE IF NOT EXISTS pagos (idusuario TEXT, monto TEXT)";
+db.run(pago, function(err){
+  if(err) return console.error(err.message);
+})
 //Creacion de ebeds personalizados//
 let title = "CREATE TABLE IF NOT EXISTS embedt (idusuario TEXT, titulo  TEXT)";
 db.run(title, function(err){
@@ -57,23 +62,36 @@ db.run(color, function(err){
 
 });
 
-client.on("message", (message)=>{
-if(message.channel.type=='dm') return;
+client.on("message", (message)  =>{
+
+if(message.channel.type=='dm'){
+  if(message.author.bot)return;
+  message.reply(':x: | Los mensaje enviados por aqui no son recibidos por nadie | :x:')
+    }
+  if(message.channel.type=='dm')return
 //Comands
+
 if (!message.content.startsWith(prefix)) return; 
 if (message.author.bot) return;
 const args = message.content.slice(prefix.length).trim().split(/ +/g);
 const command = args.shift().toLowerCase();
+
+let allMembers = ['604322219916787713', '835735223773429801', '709535871170248764', '898715661721796618', '818633128745762816', '623969829623431186', '754860261403525171', '334809973844606977']
+
+
 if(command === 'ping'){
   let ping = Math.floor(message.client.ws.ping);
-   message.channel.send(':ping_pong: `'+ping+' ms.` desde Consola.'); 
+   message.channel.send(':ping_pong: `'+ping+' ms.` desde Manteniminto :(.'); 
 }
-if(command === 'evento'){
+if(command === 'img'){
   message.delete();
   let permiso = message.member.hasPermission('MANAGE_MESSAGES');
+  let img = args[0];
+  if(!img)return
+  let text = args.slice(1).join(' ') || ' ';
   if(!permiso) return message.reply('No, no, no...').then(msg=>msg.delete({timeout: 1000}))
-  const imagen = new Discord.MessageAttachment('https://cdn.discordapp.com/attachments/750520873039036487/904855620996435988/Evento_Minecraft_SPM.png')
- message.channel.send(imagen);
+  const imagen = new Discord.MessageAttachment(img)
+  message.channel.send(text, imagen);
 }
 ///////////////////////////////////Embeds personales////////////////////////////////////////////////////////////////////////////////
 if(command==='embed'){
@@ -95,6 +113,13 @@ if(command==='embed'){
           if (err) return console.error(err.message)
           message.channel.send('Titulo guardado').then(msg=>msg.delete({timeout: 1000}))
 })
+      }else{
+        let update = `UPDATE embedt SET titulo = '${titulo}' WHERE idusuario = '${message.author.id}'`;
+
+              db.run(update, function(err) {
+              if (err) return console.error(err.message)
+              message.channel.send('Titulo guardado y actualizado').then(msg=>msg.delete({timeout: 1000}))
+              })
       }
 
   })
@@ -119,6 +144,13 @@ if(command==='embed'){
               message.channel.send('Subtitulo guardado').then(msg=>msg.delete({timeout: 1000}))
     })
 
+            }else{
+              let update = `UPDATE embeds SET titulo = '${subtitulo}' WHERE idusuario = '${message.author.id}'`;
+
+              db.run(update, function(err) {
+              if (err) return console.error(err.message)
+              message.channel.send('Subtitulo guardado y actualizado').then(msg=>msg.delete({timeout: 1000}))
+              })
             }
         
             
@@ -143,6 +175,13 @@ if(command==='embed'){
               message.channel.send('Contenido guardado').then(msg=>msg.delete({timeout: 1000}))
     })
 
+            }else{
+              let update = `UPDATE embedc SET contenido = '${contenido}' WHERE idusuario = '${message.author.id}'`;
+
+              db.run(update, function(err) {
+              if (err) return console.error(err.message)
+              message.channel.send('Contenido guardado y actualizado').then(msg=>msg.delete({timeout: 1000}))
+              })
             }
         
             
@@ -275,7 +314,7 @@ message.channel.send(texto);
 }
 //Nicks
 if(command === 'nick'){
-    let nick = args.join(' ')
+    let nick = args.join(' ');
     if(!nick) return message.channel.send('Coloca ti nick `'+prefix+'nick <TuNombreEnMinecraft>`')
 
   let SQLSelect = `SELECT * FROM nick WHERE idusuario = ${message.author.id}`;
@@ -350,10 +389,18 @@ db.run(SQLUpdate, function(err) {
 }
 
 /////////////////////////////////Bromas//////////////////////////////////////////////////////////////////////////////
-if(command === 'broma'){
-  if(!args[0]) return message.channel.send('**'+message.author.username+'** usa `'+prefix+'broma ayuda`')
-  
+
+if(command === 'broma'){ 
+
+  if(!args[0]) return message.channel.send(`<@${message.author.id}> :x: | Comando desconocido, usa: `+'`'+prefix+'broma ayuda`')
+  module.exports={
+    'Discord':Discord,
+    'client': client,
+    'db':db,
+    'message':message
+  }
   let argumento0 = args[0].toLocaleLowerCase();
+const funciones = require('./functions')
 
   if(argumento0==='ayuda'){
     const embed = new Discord.MessageEmbed()
@@ -367,201 +414,31 @@ if(command === 'broma'){
       .setFooter(client.user.username, client.user.displayAvatarURL())
       .setTimestamp()
       .setColor('RANDOM')
-message.member.send(`Has pedido ayuda del comando **.broma** por el canal <#${message.channel.id}>`)
-message.member.send(embed)
+message.member.send(`Has pedido ayuda del comando **.broma** por el canal <#${message.channel.id}>`, {embed})
 message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
-  }
+  } else
 
-
-
-  function consultas(user){
-
-    let SQLSelect = `SELECT * FROM broma WHERE idusuario = ${user.id}`;
-
-    db.get(SQLSelect, (err, filas) => {
-      if (err) return console.error(err.message)
-       if (!filas) return message.channel.send('El usuario consultado no tine registro')
-
-        let nivel = filas.nivel;
-
-      if(nivel == 0){
-        const embed = new Discord.MessageEmbed()
-        .setTitle('NIVEL DE PRANK 0')
-        .setDescription('LAS PRANKS SE ENCUENTRAN `DESACTIVADAS` PARA ESTE USUARIO.')
-        .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓN', '```md\n1. NO HACER NINGUNA PRANK A ESTE USUARIO, EL TAMPOCO PUEDE HACERTE NADA A TI.\n```')
-        .setFooter(client.user.username, client.user.displayAvatarURL())
-        .setTimestamp()
-        
-        
-        message.channel.send(embed);
-
-      }
-      if(nivel == 1){
-        const embed = new Discord.MessageEmbed()
-        .setTitle('NIVEL DE PRANK `1`')
-        .setColor(0x2ECC71)
-        .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 1`')
-        .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *20 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
-        .setFooter(client.user.username, client.user.displayAvatarURL())
-        .setTimestamp()
-        
-        message.channel.send(embed);
-      }
-      if(nivel == 2){
-        const embed = new Discord.MessageEmbed()
-        .setTitle('NIVEL DE PRANK `2`')
-        .setColor(0xF1C40F)
-        .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 2`')
-        .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2.SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGúN TU NIVEL. \n3. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *40 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
-        .setFooter(client.user.username, client.user.displayAvatarURL())
-        .setTimestamp()
-        
-        message.channel.send(embed);
-      }
-      if(nivel == 3){
-        const embed = new Discord.MessageEmbed()
-        .setTitle('NIVEL DE PRANK `3`')
-        .setColor(0xD35400 )
-        .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 3`')
-        .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *70 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
-        .setFooter(client.user.username, client.user.displayAvatarURL())
-        .setTimestamp()
-        
-        message.channel.send(embed);
-      }
-      if(nivel == 4){
-        message.channel.send('YA CASI ESTA LISTO')
-        if(0===1) return;
-
-        const embed = new Discord.MessageEmbed()
-        .setTitle('NIVEL DE PRANK `4`')
-        .setColor(0xFF0000)
-        .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 4`')
-        .setAuthor(user.username, user.displayAvatarURL())
-        .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 4 TE PERMITEN MOVER, COLOCAR, QUITAR BLOQUES SIN NINGUN LIMITE*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
-        .setFooter(client.user.username, client.user.displayAvatarURL())
-        .setTimestamp()
-        
-        message.channel.send(embed);
-      }
-})
-  }
-  if(argumento0=== 'consultar') {
-    message.delete()
+  if(argumento0=== 'consultar'){
     let user = message.mentions.users.first();
-    if(!user) return message.channel.send('Mennciona a alguin con `@nombre`')
+    if(!user) return message.channel.send('<@'+message.author.id+'> :x: | Mennciona a alguin con `@nombre`')
+    message.delete()
 
-    consultas(user)
+    funciones.consultas(user)
 
-  }
-  if(argumento0=== 'estado') consultas(message.author)
+  }else
 
-
-function ingresoDatos () {
-  let consulta = `SELECT * FROM nick WHERE idusuario = ${message.author.id}`;
-  db.get(consulta, (err, datos)=>{
-    if(err)return console.error(err.message)
-    if(!datos) return message.channel.send('<@'+message.author.id+'> NO TIENES NICK REGISTRADO VE A <#751103129055002625> Y REGISTRATE')
+  if(argumento0 === 'estado'){  
+    funciones.consultas(message.author)
+  }else
   
-  let nivel = parseInt(args[1])
-let a =  'Solo se pueden ingresar numero del **0** a **4**';
-if(isNaN(nivel)) return message.channel.send(a)
-if(nivel >= 5) return message.channel.send(a)
-if(nivel < 0)return message.channel.send(a)
-///4 desactivadp
-if(nivel == 4) return message.channel.send(`**${message.member.displayName}** EL NIVEL 4 ESTA EN MANTENIMIENTO DISCULPA LAS MOLESTIAS`)
-
-function numeros(){
-  let level
-  if(nivel == 0)level = ' '
-  if(nivel == 1)level = '①'
-  if(nivel == 2)level = '②'
-  if(nivel == 3)level = '③'
-  if(nivel == 4)level = '⓸'
-  return level
-}
-
-
-function niveles() {
-  let nombre = datos.name;
-  let level
-  if(nivel == 0)level = ' '
-  if(nivel == 1)level = '①'
-  if(nivel == 2)level = '②'
-  if(nivel == 3)level = '③'
-  if(nivel == 4)level = '⓸'
-  
-  if(message.author.id == message.guild.ownerID) return 
-  
-  message.member.setNickname(`${nombre} ${level}`).catch(console.error)
-}
-let roles = require('./roles.json');
-
-function addRol(){
-    let r1 = message.member.roles.cache.find(r => r.id === roles.prank1)
-      if(r1)message.member.roles.remove(r1.id)
-    let r2 = message.member.roles.cache.find(r => r.id === roles.prank2)
-      if(r2)message.member.roles.remove(r2.id)
-    let r3 = message.member.roles.cache.find(r => r.id === roles.prank3)
-      if(r3)message.member.roles.remove(r3.id)
-    let r4 = message.member.roles.cache.find(r => r.id === roles.prank4)
-      if(r4)message.member.roles.remove(r4.id)
-
-      let add
-  if(nivel == 0) return;
-  if(nivel == 1) add = roles.prank1;
-  if(nivel == 2) add = roles.prank2;
-  if(nivel == 3) add = roles.prank3;
-  if(nivel == 4) add = roles.prank4;
-
-
-    message.member.roles.add(add);
-}
-
-  let SQLSelect = `SELECT * FROM broma WHERE idusuario = ${message.author.id}`;
-
-    db.get(SQLSelect, (err, filas) => {
-      if (err) return console.error(err.message)
-       if (!filas){
-        let SQLInsert = `INSERT INTO broma(idusuario, nivel) VALUES(${message.author.id}, ${nivel})`;
-      
-      db.run(SQLInsert, function(err) {
-          if (err) return console.error(err.message)
-          message.channel.send(`Se a añadido tu nivel de Prank a nivel ${numeros()}`)
-          niveles()
-          addRol()
-      })
-
-       }
-       else{
-    
-        let SQLUpdate = `UPDATE broma SET nivel = ${nivel} WHERE idusuario = ${message.author.id}`;
-
-        db.run(SQLUpdate, function(err) {
-            if (err) return console.error(err.message)
-            message.channel.send(`Se actualizo tu nivel de Pranks a ${numeros()}`)
-            niveles()
-            addRol()
-        })
-
-       }
-
-})
-
-})
-}
 
 
 if(argumento0 === 'ingresar'){
-  ingresoDatos()
-}
+  funciones.ingresoDatos(message.member, args[1])
+}else
 if(argumento0 === 'i'){
-  ingresoDatos()
-}
+  funciones.ingresoDatos(message.member, args[1])
+}else
 
 if(argumento0 ==='niveles'){
   let user = message.author
@@ -570,7 +447,7 @@ if(argumento0 ==='niveles'){
   member.send(`Solicitud de Niveles, por el canal <#${message.channel.id}>`)
     const embed0 = new Discord.MessageEmbed()
     .setTitle('NIVEL DE PRANK 0')
-    .setDescription('LAS PRANKS SE ENCUENTRAN `DESACTIVADAS` PARA ESTE USUARIO.')
+    .setDescription('PRANKS`DESACTIVADAS`.')
     .setAuthor(user.username, user.displayAvatarURL())
     .addField('RECOMENDACIÓN', '```md\n1. NO HACER NINGUNA PRANK A ESTE USUARIO, EL TAMPOCO PUEDE HACERTE NADA A TI.\n```')
     .setFooter(client.user.username, client.user.displayAvatarURL())
@@ -583,7 +460,7 @@ if(argumento0 ==='niveles'){
     .setColor(0x2ECC71)
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 1`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE *20 BLOQUES*.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. LAS PRANKS DE NIVEL 1 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO DE **20 BLOQUES**.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
     .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
@@ -595,7 +472,7 @@ if(argumento0 ==='niveles'){
     .setColor(0xF1C40F)
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 2`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2.SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGúN TU NIVEL. \n3. LAS PRANKS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *40 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2.SI TIENES LAS BROMAS A UN NIVEL MENOR, SOLO PUEDES HACERLAS SEGúN TU NIVEL. \n3. LAS BROMAS DE NIVEL 2 SOLO SE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO **50 BLOQUES**.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
         .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
@@ -606,37 +483,67 @@ if(argumento0 ==='niveles'){
     .setColor(0xD35400 )
     .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 3`')
     .setAuthor(user.username, user.displayAvatarURL())
-    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO *70 BLOQUES*.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .addField('RECOMENDACIÓNES', '```md\n1. SOLO SE PUEDE HACER UNA BROMA SI TIENES ACTIVADO LAS BROMAS.\n2. SI TIENES LAS BROMAS A UN NIVEL MENOR, SOLO PUEDES HACERLAS SEGÚN TU NIVEL.\n3. LAS PRANKS DE NIVEL 3 TE PERMITEN MOVER, COLOCAR, QUITAR UN MAXIMO **100 BLOQUES**.\n4. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n5. RECUERDA QUE NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
     .setFooter(client.user.username, client.user.displayAvatarURL())
     .setTimestamp()
     
     member.send(embed3);
-  member.send('Nivel 4 DESACTIVADO TEMPORALMENTE')
+
+    const embed4 = new Discord.MessageEmbed()
+    .setTitle('☠NIVEL DE PRANK `NIVEL 4`☠')
+    .setColor(0xff0000)
+    .setDescription('LAS PRANKS ESTAN ACTIVADAS AL `NIVEL 4`')
+    .setAuthor(user.username, user.displayAvatarURL())
+    .addField('RECOMENDACIÓNES', '```md\n1. TODOS TE PUEDEN HACER TODO TIPO DE PRANKS.\n2. SE PERMITE MOVER/QUITAR/COLOCAR UN NUMERO ILIMITADO DE BLOQUES.\n3. TIENES QUE LIMPIAR OBLIGATORIAMENTE EL 50% DE LA PRANK.\n4. NO SE PERMITE ROBAR ITEMS NI BLOQUES.\n```')
+    .setFooter(client.user.username, client.user.displayAvatarURL())
+    .setTimestamp()
+    
+    member.send(embed4);
 message.channel.send(`<@${message.author.id}> Datos enviados por DM`)
+}else
+
+  if(argumento0 === 'cambiar'){
+    let permisos = message.member.hasPermission('ADMINISTRATOR');
+    if(!permisos) return;
+    message.delete();
+    
+    let user = message.mentions.members.first();
+if(!user)return message.channel.send(`:x: | Menciona a alguen`).then(msg=>msg.delete({timeout: 1000}))
+    let nivel = args[2]; 
+      if(isNaN(nivel))return message.channel.send(':x: | No has pusto en nievl').then(msg=>msg.delete({timeout: 1000}))
+      nivel = parseInt(nivel);
+//ejecuta la funcion
+      funciones.ingresoDatos(user, nivel)
+
+  }else
+    message.channel.send( `<@${message.author.id}> :x: | Comando desconocido, usa: `+'`'+prefix+'broma ayuda`')
+  
 }
-}
+///////FIN DE BROMAS
 
 
 if(command === 'mute'){
   let permisos = message.member.hasPermission("ADMINISTRATOR");
-    if(!permisos) return message.channel.send(`Señor@ <@${message.author.id}> no puede Mutear`).then(msg=>msg.delete({timeout: 3000}))
+  if(!permisos) return message.channel.send(`Señor@ <@${message.author.id}> no puede Mutear`).then(msg=>msg.delete({timeout: 3000}))
+    message.delete(); 
     let miembro = message.mentions.members.first();
-    if(!miembro) return message.channel.send('Porfavor mencione a alguen').then(msg=> msg.delete({timeout: 3000}))
+    if(!miembro) return message.channel.send('Porfavor mencione a alguen').then(msg=> msg.delete({timeout: 1000}))
   let tiempo = parseInt(args[1])
-    if(isNaN(tiempo)) return message.channel.send('Tiempo invalido').then(msg=>msg.delete({timeout: 3000}))
+    if(isNaN(tiempo)) return message.channel.send('Tiempo invalido').then(msg=>msg.delete({timeout: 1000}))
 
 let razon = args.slice(2).join(' ') || 'No se especifica';
-message.delete()
+
     miembro.roles.add('750542085257429002')
     miembro.roles.remove('749782923451826256')
-    client.channels.resolve('750571555096100914').send(`${miembro} esta muteado por ${tiempo/1000} segundos`)
-  miembro.send(`Has sido muteado del servidor **${message.guild.name}** por un tiempo de **${tiempo/1000}** segundos por la razon: ${razon}`)
-  setTimeout(() =>{
-    miembro.roles.remove('750542085257429002')
-    miembro.roles.add('749782923451826256')
-    client.channels.resolve('750571555096100914').send(`${miembro} ha sido revocado del mute`)
-    miembro.send(`El MUTE ha sido revocado del servidor **${message.guild.name}**`)
-   }, tiempo)
+    client.channels.resolve('750571555096100914').send(`${miembro} esta muteado por ${tiempo} segundos`)
+  miembro.send(`Has sido muteado del servidor **${message.guild.name}** por un tiempo de **${tiempo}** segundos por la razon: ${razon}`)
+  
+    setTimeout(() =>{
+      miembro.roles.remove('750542085257429002')
+      miembro.roles.add('749782923451826256')
+      client.channels.resolve('750571555096100914').send(`${miembro} ha sido revocado del mute`)
+      miembro.send(`El MUTE ha sido revocado del servidor **${message.guild.name}**`)
+   }, tiempo*1000)
 }
 
 if(command==='hablar'){
@@ -647,7 +554,7 @@ if(command==='hablar'){
       if(!persona)return
 
     let contenido = args.slice(1).join(' ');
-        if(!contenido)return message.channel.send('NO HAY CONTEXTO.').then(msg=>{msg.delete({timeout: 1000})})
+        if(!contenido)return message.channel.send(':x: | NO HAY CONTEXTO.').then(msg=>{msg.delete({timeout: 1000})})
 
         persona.send(contenido)
         client.channels.resolve('750571555096100914').send(`**${message.author.username}** Envio mensaje a **${persona.user.username}**:\n${contenido}`)
@@ -689,11 +596,228 @@ if(command === 'clear'){
           })
             
         }
+let mes_pago = 'Enero' 
+if(command === 'addpagos'){
+  let permiso = message.member.hasPermission('ADMINISTRATOR');
+  if(!permiso) return;
+  message.delete();
+  
+    let monto = args[1] || 20;
+
+     if(isNaN(monto)) return message.channel.send(':x:| Coloque un numero.').then(msg=>msg.delete({timeout: 1000}))
+monto = parseInt(monto);
+     //let allMembers = ['334809973844606977', '549307481843826700']
+
+     for (let i = 0; i < allMembers.length; i++) {
+       const id = allMembers[i];
+
+      const embed = new Discord.MessageEmbed()
+          .setTitle(':warning: ALERTA DE COBRO :warning:')
+          .addField('Pago del mes de DICIEMBRE.', `El pago de este Mes es de **$${monto}.00MXN**. \nEl vencimiento de la membrecía es el día **25 de ${mes_pago}**. \nFavor de pagar cuanto antes. \nSi el pago no se hace dentro de los 10 días siguientes, quedara inhabilitado del servidor.`)
+          .setFooter(client.user.username, client.user.displayAvatarURL())
+          .setAuthor(message.guild.name , message.guild.iconURL())
+          .setTimestamp()
+          .setColor('YELLOW')
+
+          
+       message.guild.members.fetch(id).then(user => {
+        user.send(embed2);
+      }).catch(()=>{});
+
+        client.channels.resolve('921448852161191987').send(`<@${id}> Se añadio dinero: **$${monto}.00MXN**`)
+
+       let select = `SELECT * FROM pagos WHERE idusuario = ${id}`
+        db.get(select, (err, filas)=>{
+          if(err) return console.error(err.message)
+
+        
+          if(!filas){
+           
+            let consultar = `INSERT INTO pagos(idusuario, monto) VALUES(${id}, ${monto})`;
+             db.run(consultar, function(err) {
+               if (err) return console.error(err.message)
+               
+           })
+
+          } else {
+            let poner = `UPDATE pagos SET monto = ${parseInt(filas.monto) +monto} WHERE idusuario = ${id}`
+              db.run(poner, function(err){
+                if(err)return console.error(err.message)
+              })
+          }
+
+        })
+
+     
+    }
+
+}
+
+
+if(command==='pagado'){
+ let p = message.member.hasPermission('ADMINISTRATOR');
+ if(!p)return
+message.delete();
+ let user = message.mentions.members.first();
+let id = user.id;
+let cantidad = args[1]
+  if(isNaN(cantidad))return message.channel.send(':x: | No valido.').then(msg=>msg.delete({timeout: 1000}));
+  let monto = parseInt(cantidad);
+
+ let select = `SELECT * FROM pagos WHERE idusuario = ${id}`
+ db.get(select, (err, filas)=>{
+   if(err) return console.error(err.message)
+ if(filas.monto <= 0) message.channel.send(`YA ESTA PAGADO: **${parseInt(filas.monto)-cantidad}**'`).then(msg=>msg.delete({timeout: 1000}));
+   if(!filas){
+    
+     message.channel.send('NO HAY NADA ??, Agregalo tu de forma individual').then(msg=>(msg.delete({timeout: 5000})))
+
+   } else {
+     let poner = `UPDATE pagos SET monto = ${parseInt(filas.monto) - monto} WHERE idusuario = ${id}`
+       db.run(poner, function(err){
+         if(err)return console.error(err.message)
+
+         let select = `SELECT * FROM pagos WHERE idusuario = ${id}`
+            db.get(select, (err, filas)=>{
+              if(err) return console.error(err.message);
+
+              const embed = new Discord.MessageEmbed()
+              .setTitle('<:Minecraftemerald:921541527254233109> PAGADO <:Minecraftemerald:921541527254233109>')
+              .setDescription('El pago ha sido recibido correctamente.')
+              .setAuthor(user.displayName, user.user.displayAvatarURL())
+              .setFooter(client.user.username, client.user.displayAvatarURL())
+              .addField('ABONO:', `$${cantidad}.00MXN`)
+              .addField('SU ADEUDO ES DE:', `$${filas.monto}.00MXN`, true)
+              .addField('PROXIMO PAGO:', `25 de ${mes_pago} de 2021`, true)
+              .setTimestamp()
+              .setColor('GREEN')
+
+              user.send(`<@${user.id}>`, { embed });
+              client.channels.resolve('921448852161191987').send(`<@${user.id}> Pago:**$${cantidad}.00MXN**, y Debe: **$${filas.monto}.00MXN**`);
+            });
+       })
+   }
+
+ })
+  
+
+}
+
+if(command==='deuda'){
+let permiso = message.member.hasPermission('ADMINISTRATOR');
+  if(!permiso){
+
+    let select = `SELECT * FROM pagos WHERE idusuario = ${message.author.id}`
+            db.get(select, (err, filas)=>{
+              if(err) return console.error(err.message);
+              if(!filas)return message.channel.send(`<@${message.author.id}> :x: | Al parecer no esta registrado, busca un Admin.`)
+              const embed =new Discord.MessageEmbed()
+              embed.setAuthor(message.author.username, message.member.user.displayAvatarURL())
+              embed.setFooter(message.guild.name, message.guild.iconURL())
+              embed.setTimestamp()
+              if(filas.monto <= 0) {
+                embed.setTitle('Todo esta en Orden')
+                embed.setColor('GREEN')
+                embed.setDescription('Felicidades has pagado todo lo que corresponde al mes.')
+                  if(filas.monto < 0) embed.addField('Tu saldo a favor es de:', `$${parseInt(filas.monto)*-1}.00MXN` ,true) //Se multiplica por -1 para pasarla a Positvo
+                }else{
+                  embed.setTitle('NESECITAS PAGAR')
+                  embed.setColor('RED')
+                  embed.setDescription('Te recomendamos pagar en cuanto antes, para no perder el Acceso.')
+                  embed.addField('Tu deuda:', `$${filas.monto}.00MXN`)
+                  
+                }
+                embed.addField('El siguente pago:', `25 de ${mes_pago} de 2021`,true)
+                message.member.send(`Has pedido esto por <#${message.channel.id}>`, embed)
+                message.channel.send(`<@${message.author.id}> :white_check_mark: | Datos enviados por DM`)
+              })
+  }
+
+  let lista = `SELECT idusuario, monto FROM pagos ORDER BY monto DESC`
+
+  db.all(lista,  (err, todo)=>{
+    if(err)return console.error(err.message);
+
+    let datos = [];
+
+    todo.map(x => {
+      
+      message.guild.members.fetch(x.idusuario).then(user =>{ 
+
+        datos.push(`__${user.displayName}__, Deuda: **$${x.monto}.00MXN**`)
+       
+        if(datos.length != allMembers.length) return;
+        
+    const embed = new Discord.MessageEmbed()
+        embed.setTitle('Lista completa de Deudas.')
+        embed.setDescription(datos.join('\n'))
+        embed.setTimestamp()
+        embed.setColor('RANDOM')
+        embed.setAuthor(client.user.username, client.user.displayAvatarURL())
+        embed.setFooter(message.guild.name , message.guild.iconURL())
+    
+        message.channel.send(embed);
+      })
+      
+      
+    });
+    
+  })
+
+}
+
+if(command === 'agregarpago'){
+
+  let permiso = message.member.hasPermission('ADMINISTRATOR');
+  if(!permiso)return;
+     message.delete();
+  let user = message.mentions.members.first();
+ let id = user.id;
+ let cantidad = args[1];
+   if(isNaN(cantidad))return message.channel.send(':x: | No valido.').then(msg=>msg.delete({timeout: 1000}));
+   let monto = parseInt(cantidad);
+
+   let select = `SELECT * FROM pagos WHERE idusuario = ${id}`
+   db.get(select, (err, filas)=>{
+     if(err) return console.error(err.message)
+     if(!filas){
+
+      let insertar = `INSERT INTO pagos(idusuario, monto) VALUES(${id}, ${monto})`;
+      db.run(insertar, function(err) {
+        if (err) return console.error(err.message)
+
+        if(monto <= 0) return  client.channels.resolve('921448852161191987').send(`<@${id}> Se quito: **$${monto}.00MXN**`)
+        client.channels.resolve('921448852161191987').send(`<@${id}> Se agrego: **$${monto}.00MXN**`)
+    })
+     }else{ 
+      let poner = `UPDATE pagos SET monto = ${parseInt(filas.monto) + monto} WHERE idusuario = ${id}`
+      db.run(poner, function(err){
+        if(err)return console.error(err.message);
+
+        if(monto <= 0) return  client.channels.resolve('921448852161191987').send(`<@${id}> Se quito: **$${monto}.00MXN**`)
+        client.channels.resolve('921448852161191987').send(`<@${id}> Se agrego: **$${monto}.00MXN**`)
+      });
+     }  
+     
+     })
+    
+}
+
+if(command==='saycanal'){
+  let p = message.member.hasPermission('ADMINISTRATOR')
+  if(!p)return;
+  message.delete()
+  let texto = args.slice(1).join(" ");
+  if(!texto)return;
+  client.channels.resolve(`${args[0]}`).send(texto);
+
+}
 });
 
-client.on("guildMemberAdd", member =>{
 
-  client.channels.resolve('750443539363790936').send(`EL DIA DE HOY **${member}** HA LLEGADO`)
+client.on("guildMemberAdd", (member) =>{
+
+  client.channels.resolve('750443539363790936').send(`EL DIA DE HOY **${member.user}** HA LLEGADO`)
 });
 
 client.on("messageDelete", (message)=>{
@@ -729,7 +853,5 @@ client.on("messageUpdate", messageUptate =>{
     client.channels.resolve('750578394370015243').send(embed);
 
 });
-
-
 
 client.login(process.env.token)
